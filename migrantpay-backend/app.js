@@ -32,9 +32,18 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 3000;
+
+const isTwilioConfigured = process.env.TWILIO_ACCOUNT_SID &&
+                           process.env.TWILIO_ACCOUNT_SID !== 'your_account_sid_here' &&
+                           process.env.TWILIO_AUTH_TOKEN &&
+                           process.env.TWILIO_AUTH_TOKEN !== 'your_auth_token_here' &&
+                           process.env.TWILIO_PHONE_NUMBER &&
+                           process.env.TWILIO_PHONE_NUMBER !== 'REPLACE_WITH_TWILIO_NUMBER' &&
+                           !process.env.TWILIO_PHONE_NUMBER.includes('REPLACE');
+
 app.listen(PORT, () => {
   console.log(`\n🚀 MigrantPay Backend running on http://localhost:${PORT}`);
-  console.log(`📱 Twilio SMS: ${process.env.TWILIO_ACCOUNT_SID ? '✅ Connected' : '⚠️  Not configured (demo mode)'}`);
+  console.log(`📱 Twilio SMS: ${isTwilioConfigured ? '✅ Connected' : '⚠️  Not configured (fallback to demo mode)'}`);
   console.log(`\nEndpoints:`);
   console.log(`  POST /api/auth/send-otp`);
   console.log(`  POST /api/auth/verify-otp`);
