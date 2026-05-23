@@ -11,6 +11,8 @@ import 'theme/app_theme.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('en_IN', null); // Fix locale data for Indian number/date formatting
+  final appProvider = AppProvider();
+  await appProvider.initialize();
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
@@ -21,25 +23,36 @@ void main() async {
       statusBarIconBrightness: Brightness.light,
     ),
   );
-  runApp(const MigrantPayApp());
+  runApp(MigrantPayApp(appProvider: appProvider));
 }
 
 class MigrantPayApp extends StatelessWidget {
-  const MigrantPayApp({super.key});
+  final AppProvider appProvider;
+
+  const MigrantPayApp({super.key, required this.appProvider});
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AppProvider()),
-        ChangeNotifierProvider(create: (_) => WalletProvider()),
+        ChangeNotifierProvider.value(value: appProvider),
+        ChangeNotifierProxyProvider<AppProvider, WalletProvider>(
+          create: (_) => WalletProvider(),
+          update: (_, appProvider, walletProvider) {
+            walletProvider!.updateAuth(
+              phone: appProvider.phoneNumber,
+              token: appProvider.token,
+            );
+            return walletProvider;
+          },
+        ),
       ],
       child: Consumer<AppProvider>(
         builder: (context, appProvider, _) {
           return MaterialApp(
             title: 'MigrantPay',
             debugShowCheckedModeBanner: false,
-            theme: AppTheme.darkTheme,
+            theme: AppTheme.lightTheme,
             home: const SplashScreen(),
             builder: (context, child) {
               return MediaQuery(

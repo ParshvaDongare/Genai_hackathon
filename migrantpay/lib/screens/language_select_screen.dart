@@ -14,14 +14,18 @@ class LanguageSelectScreen extends StatelessWidget {
     final appProvider = context.watch<AppProvider>();
 
     return Scaffold(
-      backgroundColor: AppTheme.bgDark,
+      backgroundColor: AppTheme.bgLight,
       body: SafeArea(
         child: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Color(0xFF0F0F24), Color(0xFF0A0A1B)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color(0xFFFFF7E8),
+                Color(0xFFE9F9FF),
+                Color(0xFFFFEEE0),
+              ],
             ),
           ),
           child: Padding(
@@ -29,55 +33,62 @@ class LanguageSelectScreen extends StatelessWidget {
             child: Column(
               children: [
                 const SizedBox(height: 40),
-                // Logo row
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Container(
-                      width: 44,
-                      height: 44,
+                      width: 48,
+                      height: 48,
                       decoration: BoxDecoration(
-                        gradient: AppTheme.primaryGradient,
-                        borderRadius: BorderRadius.circular(12),
+                        gradient: AppTheme.walletGradient,
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppTheme.primary.withOpacity(0.22),
+                            blurRadius: 24,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
                       ),
-                      child: const Icon(Icons.currency_rupee_rounded,
-                          color: Colors.white, size: 26),
+                      child: const Icon(
+                        Icons.currency_rupee_rounded,
+                        color: Colors.white,
+                        size: 28,
+                      ),
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: 12),
                     Text(
                       'MigrantPay',
                       style: GoogleFonts.inter(
-                        fontSize: 24,
+                        fontSize: 26,
                         fontWeight: FontWeight.w800,
-                        color: Colors.white,
+                        color: AppTheme.textPrimary,
                       ),
                     ),
                   ],
                 ).animate().fadeIn(duration: 400.ms).slideY(begin: -0.2),
-                const SizedBox(height: 60),
-                // Title
+                const SizedBox(height: 56),
                 Text(
                   'Select Language',
                   style: GoogleFonts.inter(
                     fontSize: 30,
                     fontWeight: FontWeight.w800,
-                    color: Colors.white,
+                    color: AppTheme.textPrimary,
                     letterSpacing: -0.5,
                   ),
                 ).animate(delay: 100.ms).fadeIn().slideY(begin: 0.2),
                 const SizedBox(height: 8),
                 Text(
-                  'भाषा चुनें',
+                  'Choose the language you want to continue with',
                   style: GoogleFonts.inter(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w500,
+                    fontSize: 15,
                     color: AppTheme.textSecondary,
                   ),
+                  textAlign: TextAlign.center,
                 ).animate(delay: 200.ms).fadeIn().slideY(begin: 0.2),
-                const SizedBox(height: 48),
-                // Language options
+                const SizedBox(height: 40),
                 _LanguageCard(
-                  flag: '🇬🇧',
+                  badgeText: 'EN',
                   name: 'English',
                   subtitle: 'Continue in English',
                   isSelected: appProvider.language == Language.english,
@@ -86,15 +97,14 @@ class LanguageSelectScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 _LanguageCard(
-                  flag: '🇮🇳',
-                  name: 'हिंदी',
-                  subtitle: 'हिंदी में जारी रखें',
+                  badgeText: 'हि',
+                  name: 'Hindi',
+                  subtitle: 'Continue in Hindi',
                   isSelected: appProvider.language == Language.hindi,
                   delay: 400,
                   onTap: () => appProvider.setLanguage(Language.hindi),
                 ),
                 const Spacer(),
-                // Continue button
                 SizedBox(
                   width: double.infinity,
                   height: 58,
@@ -110,7 +120,9 @@ class LanguageSelectScreen extends StatelessWidget {
                                 end: Offset.zero,
                               ).animate(
                                 CurvedAnimation(
-                                    parent: anim, curve: Curves.easeInOut),
+                                  parent: anim,
+                                  curve: Curves.easeInOut,
+                                ),
                               ),
                               child: child,
                             );
@@ -132,9 +144,9 @@ class LanguageSelectScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(16),
                         boxShadow: [
                           BoxShadow(
-                            color: AppTheme.primary.withOpacity(0.4),
-                            blurRadius: 20,
-                            offset: const Offset(0, 8),
+                            color: AppTheme.primary.withOpacity(0.3),
+                            blurRadius: 22,
+                            offset: const Offset(0, 10),
                           ),
                         ],
                       ),
@@ -151,8 +163,11 @@ class LanguageSelectScreen extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(width: 8),
-                            const Icon(Icons.arrow_forward_rounded,
-                                color: Colors.white, size: 20),
+                            const Icon(
+                              Icons.arrow_forward_rounded,
+                              color: Colors.white,
+                              size: 20,
+                            ),
                           ],
                         ),
                       ),
@@ -170,7 +185,7 @@ class LanguageSelectScreen extends StatelessWidget {
 }
 
 class _LanguageCard extends StatelessWidget {
-  final String flag;
+  final String badgeText;
   final String name;
   final String subtitle;
   final bool isSelected;
@@ -178,7 +193,7 @@ class _LanguageCard extends StatelessWidget {
   final VoidCallback onTap;
 
   const _LanguageCard({
-    required this.flag,
+    required this.badgeText,
     required this.name,
     required this.subtitle,
     required this.isSelected,
@@ -194,28 +209,44 @@ class _LanguageCard extends StatelessWidget {
         duration: const Duration(milliseconds: 250),
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          gradient: isSelected ? AppTheme.primaryGradient : null,
-          color: isSelected ? null : AppTheme.bgCard,
-          borderRadius: BorderRadius.circular(20),
+          gradient: isSelected ? AppTheme.primaryGradient : AppTheme.cardGradient,
+          borderRadius: BorderRadius.circular(22),
           border: Border.all(
-            color: isSelected
-                ? Colors.transparent
-                : Colors.white.withOpacity(0.08),
-            width: 1.5,
+            color: isSelected ? Colors.transparent : const Color(0xFFFFD8AB),
+            width: 1.4,
           ),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: AppTheme.primary.withOpacity(0.35),
-                    blurRadius: 20,
-                    offset: const Offset(0, 6),
-                  ),
-                ]
-              : [],
+          boxShadow: [
+            BoxShadow(
+              color: isSelected
+                  ? AppTheme.primary.withOpacity(0.24)
+                  : AppTheme.accent.withOpacity(0.08),
+              blurRadius: isSelected ? 24 : 18,
+              offset: const Offset(0, 10),
+            ),
+          ],
         ),
         child: Row(
           children: [
-            Text(flag, style: const TextStyle(fontSize: 36)),
+            Container(
+              width: 54,
+              height: 54,
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? Colors.white.withOpacity(0.18)
+                    : Colors.white.withOpacity(0.85),
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: Center(
+                child: Text(
+                  badgeText,
+                  style: GoogleFonts.inter(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: isSelected ? Colors.white : AppTheme.primaryDark,
+                  ),
+                ),
+              ),
+            ),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
@@ -226,15 +257,16 @@ class _LanguageCard extends StatelessWidget {
                     style: GoogleFonts.inter(
                       fontSize: 20,
                       fontWeight: FontWeight.w700,
-                      color: Colors.white,
+                      color: isSelected ? Colors.white : AppTheme.textPrimary,
                     ),
                   ),
+                  const SizedBox(height: 4),
                   Text(
                     subtitle,
                     style: GoogleFonts.inter(
                       fontSize: 13,
                       color: isSelected
-                          ? Colors.white.withOpacity(0.8)
+                          ? Colors.white.withOpacity(0.86)
                           : AppTheme.textSecondary,
                     ),
                   ),
@@ -243,8 +275,8 @@ class _LanguageCard extends StatelessWidget {
             ),
             AnimatedContainer(
               duration: const Duration(milliseconds: 250),
-              width: 26,
-              height: 26,
+              width: 28,
+              height: 28,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: isSelected ? Colors.white : Colors.transparent,
@@ -254,8 +286,7 @@ class _LanguageCard extends StatelessWidget {
                 ),
               ),
               child: isSelected
-                  ? Icon(Icons.check,
-                      size: 16, color: AppTheme.primary)
+                  ? Icon(Icons.check, size: 16, color: AppTheme.primary)
                   : null,
             ),
           ],

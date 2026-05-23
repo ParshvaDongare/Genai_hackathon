@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import '../providers/app_provider.dart';
 import '../theme/app_theme.dart';
+import 'home_screen.dart';
 import 'language_select_screen.dart';
+import 'register_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -34,9 +38,20 @@ class _SplashScreenState extends State<SplashScreen>
       }
     }
     if (mounted) {
+      final appProvider = context.read<AppProvider>();
+      final Widget nextScreen;
+
+      if (appProvider.isLoggedIn) {
+        nextScreen = const HomeScreen();
+      } else if (appProvider.hasSelectedLanguage) {
+        nextScreen = const RegisterScreen();
+      } else {
+        nextScreen = const LanguageSelectScreen();
+      }
+
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(
-          pageBuilder: (_, __, ___) => const LanguageSelectScreen(),
+          pageBuilder: (_, __, ___) => nextScreen,
           transitionsBuilder: (_, anim, __, child) {
             return FadeTransition(opacity: anim, child: child);
           },
@@ -55,13 +70,13 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.bgDark,
+      backgroundColor: AppTheme.bgLight,
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFF0A0A1B), Color(0xFF1A0A35), Color(0xFF0A0A1B)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFFFFF7E8), Color(0xFFE8F8FF), Color(0xFFFFECDD)],
             stops: [0.0, 0.5, 1.0],
           ),
         ),
@@ -76,7 +91,7 @@ class _SplashScreenState extends State<SplashScreen>
                 height: 300,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppTheme.primary.withOpacity(0.15),
+                  color: AppTheme.primary.withOpacity(0.08),
                 ),
               ),
             ),
@@ -88,7 +103,7 @@ class _SplashScreenState extends State<SplashScreen>
                 height: 250,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppTheme.secondary.withOpacity(0.1),
+                  color: AppTheme.secondary.withOpacity(0.05),
                 ),
               ),
             ),
@@ -106,7 +121,7 @@ class _SplashScreenState extends State<SplashScreen>
                       borderRadius: BorderRadius.circular(30),
                       boxShadow: [
                         BoxShadow(
-                          color: AppTheme.primary.withOpacity(0.5),
+                          color: AppTheme.primary.withOpacity(0.3),
                           blurRadius: 40,
                           spreadRadius: 8,
                         ),
@@ -132,7 +147,7 @@ class _SplashScreenState extends State<SplashScreen>
                     style: GoogleFonts.inter(
                       fontSize: 38,
                       fontWeight: FontWeight.w900,
-                      color: Colors.white,
+                      color: AppTheme.textPrimary,
                       letterSpacing: -1,
                     ),
                   )
@@ -143,7 +158,7 @@ class _SplashScreenState extends State<SplashScreen>
                   // Tagline
                   ShaderMask(
                     shaderCallback: (bounds) =>
-                        AppTheme.walletGradient.createShader(bounds),
+                      AppTheme.walletGradient.createShader(bounds),
                     child: Text(
                       'Zero Fees. Real Freedom.',
                       style: GoogleFonts.inter(
@@ -168,7 +183,7 @@ class _SplashScreenState extends State<SplashScreen>
                           child: LinearProgressIndicator(
                             value: _progress,
                             minHeight: 4,
-                            backgroundColor: Colors.white.withOpacity(0.1),
+                            backgroundColor: AppTheme.bgElevated,
                             valueColor: const AlwaysStoppedAnimation<Color>(
                                 AppTheme.primary),
                           ),
@@ -178,7 +193,7 @@ class _SplashScreenState extends State<SplashScreen>
                           'Securing your connection...',
                           style: GoogleFonts.inter(
                             fontSize: 12,
-                            color: AppTheme.textMuted,
+                            color: AppTheme.textSecondary,
                           ),
                         ),
                       ],

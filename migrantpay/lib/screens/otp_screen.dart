@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -30,6 +31,7 @@ class _OtpScreenState extends State<OtpScreen> {
   int _resendSeconds = 30;
   bool _canResend = false;
   final _pinController = TextEditingController();
+  Timer? _timer;
 
   @override
   void initState() {
@@ -48,20 +50,29 @@ class _OtpScreenState extends State<OtpScreen> {
 
   @override
   void dispose() {
+    _timer?.cancel();
     _pinController.dispose();
     super.dispose();
   }
 
-  void _startResendTimer() async {
-    for (int i = 30; i >= 0; i--) {
-      await Future.delayed(const Duration(seconds: 1));
-      if (mounted) {
-        setState(() {
-          _resendSeconds = i;
-          if (i == 0) _canResend = true;
-        });
+  void _startResendTimer() {
+    _timer?.cancel();
+    _resendSeconds = 30;
+    _canResend = false;
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
       }
-    }
+      setState(() {
+        if (_resendSeconds > 0) {
+          _resendSeconds--;
+        } else {
+          _canResend = true;
+          timer.cancel();
+        }
+      });
+    });
   }
 
   void _verifyOtp() async {
@@ -82,13 +93,6 @@ class _OtpScreenState extends State<OtpScreen> {
       final result = await ApiService.verifyOtp(widget.phone, _otp);
       if (!mounted) return;
 
-      // Save token and user info to AppProvider
-      context.read<AppProvider>().setSession(
-            token: result['token'],
-            phone: widget.phone,
-            name: widget.name,
-          );
-
       setState(() => _isVerifying = false);
       Navigator.of(context).push(
         PageRouteBuilder(
@@ -96,6 +100,7 @@ class _OtpScreenState extends State<OtpScreen> {
             phone: widget.phone,
             name: widget.name,
             token: result['token'],
+            kycStatus: (result['user'] as Map<String, dynamic>?)?['kycStatus'] as String?,
           ),
           transitionsBuilder: (_, anim, __, child) {
             return SlideTransition(
@@ -135,7 +140,7 @@ class _OtpScreenState extends State<OtpScreen> {
           SnackBar(
             content: Text(
               result['demoMode'] == true
-                  ? '🔑 Demo OTP: ${result['demoOtp']}'
+                  ? 'Demo OTP: ${result['demoOtp']}'
                   : 'OTP resent to +91${widget.phone}',
               style: GoogleFonts.inter(fontWeight: FontWeight.w600),
             ),
@@ -160,7 +165,7 @@ class _OtpScreenState extends State<OtpScreen> {
     final isDemoMode = widget.demoOtp != null;
 
     return Scaffold(
-      backgroundColor: AppTheme.bgDark,
+      backgroundColor: AppTheme.bgLight,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(28),
@@ -174,10 +179,10 @@ class _OtpScreenState extends State<OtpScreen> {
                   decoration: BoxDecoration(
                     color: AppTheme.bgCard,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.white.withOpacity(0.08)),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
                   ),
                   child: const Icon(Icons.arrow_back_ios_new,
-                      color: Colors.white, size: 18),
+                      color: AppTheme.textPrimary, size: 18),
                 ),
               ).animate().fadeIn(),
               const SizedBox(height: 40),
@@ -199,7 +204,7 @@ class _OtpScreenState extends State<OtpScreen> {
                 style: GoogleFonts.inter(
                   fontSize: 30,
                   fontWeight: FontWeight.w800,
-                  color: Colors.white,
+                  color: AppTheme.textPrimary,
                   letterSpacing: -0.5,
                 ),
               ).animate(delay: 200.ms).fadeIn().slideY(begin: 0.2),
@@ -213,7 +218,7 @@ class _OtpScreenState extends State<OtpScreen> {
                       text: '+91 ${widget.phone}',
                       style: GoogleFonts.inter(
                         fontSize: 14,
-                        color: Colors.white,
+                        color: AppTheme.textPrimary,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -246,8 +251,8 @@ class _OtpScreenState extends State<OtpScreen> {
                     const SizedBox(width: 6),
                     Text(
                       isDemoMode
-                          ? '🔑 Demo OTP: ${widget.demoOtp} (auto-filled)'
-                          : '✅ OTP sent via SMS to +91${widget.phone}',
+                          ? 'Demo OTP: ${widget.demoOtp} (auto-filled)'
+                          : 'OTP sent via SMS to +91${widget.phone}',
                       style: GoogleFonts.inter(
                         fontSize: 12,
                         color: isDemoMode ? AppTheme.accent : AppTheme.secondary,
@@ -278,14 +283,14 @@ class _OtpScreenState extends State<OtpScreen> {
                   inactiveFillColor: AppTheme.bgCard,
                   selectedFillColor: AppTheme.bgElevated,
                   activeColor: AppTheme.primary,
-                  inactiveColor: Colors.white.withOpacity(0.08),
+                  inactiveColor: const Color(0xFFE2E8F0),
                   selectedColor: AppTheme.primary,
                 ),
                 enableActiveFill: true,
                 textStyle: GoogleFonts.inter(
                   fontSize: 22,
                   fontWeight: FontWeight.w700,
-                  color: Colors.white,
+                  color: AppTheme.textPrimary,
                 ),
               ).animate(delay: 400.ms).fadeIn().slideY(begin: 0.2),
               const SizedBox(height: 12),

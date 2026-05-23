@@ -7,21 +7,37 @@ import 'package:provider/provider.dart';
 import '../providers/wallet_provider.dart';
 import '../theme/app_theme.dart';
 import 'transaction_detail_screen.dart';
+import 'qr_scanner_screen.dart';
 
 class SendMoneyScreen extends StatefulWidget {
-  const SendMoneyScreen({super.key});
+  final String? preFilledPhoneOrUpi;
+  final String? preFilledName;
+
+  const SendMoneyScreen({
+    super.key,
+    this.preFilledPhoneOrUpi,
+    this.preFilledName,
+  });
 
   @override
   State<SendMoneyScreen> createState() => _SendMoneyScreenState();
 }
 
 class _SendMoneyScreenState extends State<SendMoneyScreen> {
-  final _receiverController = TextEditingController();
-  final _amountController = TextEditingController();
-  final _nameController = TextEditingController();
+  late final TextEditingController _receiverController;
+  late final TextEditingController _amountController;
+  late final TextEditingController _nameController;
   bool _isLoading = false;
   int _step = 0; // 0: enter details, 1: confirm, 2: pin entry
   final List<int> _pin = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _receiverController = TextEditingController(text: widget.preFilledPhoneOrUpi ?? '');
+    _nameController = TextEditingController(text: widget.preFilledName ?? '');
+    _amountController = TextEditingController();
+  }
 
   final List<Map<String, String>> _frequentContacts = [
     {'name': 'Sita Devi (Maa)', 'phone': '9123456789', 'upi': 'sita@ybl'},
@@ -91,6 +107,7 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
           _nameController.text.isNotEmpty ? _nameController.text : 'Family',
       receiverPhone: _receiverController.text,
       amount: amount,
+      pin: _pin.join(),
     );
     if (mounted) {
       setState(() => _isLoading = false);
@@ -103,7 +120,7 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
                 const Icon(Icons.check_circle, color: Colors.white),
                 const SizedBox(width: 8),
                 Text(
-                  '₹${amount.toInt()} sent successfully! 🎉',
+                  '₹${amount.toInt()} sent successfully',
                   style: GoogleFonts.inter(
                       color: Colors.white, fontWeight: FontWeight.w600),
                 ),
@@ -137,7 +154,7 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
     final formatter = NumberFormat('#,##,###', 'en_IN');
 
     return Scaffold(
-      backgroundColor: AppTheme.bgDark,
+      backgroundColor: AppTheme.bgLight,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         leading: GestureDetector(
@@ -147,15 +164,15 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
             decoration: BoxDecoration(
               color: AppTheme.bgCard,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white.withOpacity(0.08)),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
             ),
             child: const Icon(Icons.arrow_back_ios_new,
-                color: Colors.white, size: 18),
+                color: AppTheme.textPrimary, size: 18),
           ),
         ),
         title: Text('Send Money',
             style: GoogleFonts.inter(
-                fontSize: 18, fontWeight: FontWeight.w700, color: Colors.white)),
+                fontSize: 18, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
         actions: [
           Container(
             margin: const EdgeInsets.only(right: 16),
@@ -199,7 +216,7 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
                 ),
                 child: Row(
                   children: [
-                    const Text('🎉', style: TextStyle(fontSize: 20)),
+                    const Icon(Icons.info_outline_rounded, color: AppTheme.secondary, size: 20),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
@@ -248,7 +265,7 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
                           color: AppTheme.bgCard,
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(
-                              color: Colors.white.withOpacity(0.06)),
+                              color: const Color(0xFFE2E8F0)),
                         ),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -299,7 +316,7 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
               TextFormField(
                 controller: _nameController,
                 style: GoogleFonts.inter(
-                    fontSize: 16, color: Colors.white),
+                    fontSize: 16, color: AppTheme.textPrimary),
                 decoration: InputDecoration(
                   hintText: "Receiver's name (optional)",
                   prefixIcon: const Icon(Icons.person_outline,
@@ -310,11 +327,28 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
               TextFormField(
                 controller: _receiverController,
                 keyboardType: TextInputType.phone,
-                style: GoogleFonts.inter(fontSize: 16, color: Colors.white),
+                style: GoogleFonts.inter(fontSize: 16, color: AppTheme.textPrimary),
                 decoration: InputDecoration(
                   hintText: 'Mobile number, UPI ID, or bank account',
                   prefixIcon: const Icon(Icons.phone_outlined,
                       color: AppTheme.textMuted),
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.qr_code_scanner_rounded,
+                        color: AppTheme.primary),
+                    onPressed: () async {
+                      final result = await Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const QrScannerScreen(returnResult: true),
+                        ),
+                      );
+                      if (result != null && result is Map<String, String>) {
+                        setState(() {
+                          _receiverController.text = result['phone'] ?? result['upi'] ?? '';
+                          _nameController.text = result['name'] ?? '';
+                        });
+                      }
+                    },
+                  ),
                 ),
               ).animate(delay: 400.ms).fadeIn().slideX(begin: -0.05),
               const SizedBox(height: 20),
@@ -335,7 +369,7 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
                 style: GoogleFonts.inter(
                   fontSize: 28,
                   fontWeight: FontWeight.w800,
-                  color: Colors.white,
+                  color: AppTheme.textPrimary,
                 ),
                 decoration: InputDecoration(
                   hintText: '0',
@@ -441,7 +475,7 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
     final formatter = NumberFormat('#,##,###', 'en_IN');
 
     return Scaffold(
-      backgroundColor: AppTheme.bgDark,
+      backgroundColor: AppTheme.bgLight,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         leading: GestureDetector(
@@ -451,15 +485,15 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
             decoration: BoxDecoration(
               color: AppTheme.bgCard,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white.withOpacity(0.08)),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
             ),
             child: const Icon(Icons.arrow_back_ios_new,
-                color: Colors.white, size: 18),
+                color: AppTheme.textPrimary, size: 18),
           ),
         ),
         title: Text('Confirm Transfer',
             style: GoogleFonts.inter(
-                fontSize: 18, fontWeight: FontWeight.w700, color: Colors.white)),
+                fontSize: 18, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
       ),
       body: Padding(
         padding: const EdgeInsets.all(20),
@@ -471,7 +505,7 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
               decoration: BoxDecoration(
                 color: AppTheme.bgCard,
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.white.withOpacity(0.07)),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
               ),
               child: Column(
                 children: [
@@ -481,7 +515,7 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
                     style: GoogleFonts.inter(
                       fontSize: 48,
                       fontWeight: FontWeight.w900,
-                      color: Colors.white,
+                      color: AppTheme.textPrimary,
                       letterSpacing: -2,
                     ),
                   ).animate().scale(
@@ -504,7 +538,7 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
                     ),
                   ).animate(delay: 150.ms).fadeIn(),
                   const SizedBox(height: 24),
-                  const Divider(color: Color(0xFF2A2A4A)),
+                  const Divider(color: Color(0xFFE2E8F0)),
                   const SizedBox(height: 16),
                   // Fee breakdown
                   _buildFeeRow('Transfer Amount', '₹${formatter.format(amount)}'),
@@ -513,7 +547,7 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
                   const SizedBox(height: 8),
                   _buildFeeRow('Network Charges', '₹0', isGreen: true),
                   const SizedBox(height: 12),
-                  const Divider(color: Color(0xFF2A2A4A)),
+                  const Divider(color: Color(0xFFE2E8F0)),
                   const SizedBox(height: 8),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -523,7 +557,7 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
                         style: GoogleFonts.inter(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
-                          color: Colors.white,
+                          color: AppTheme.textPrimary,
                         ),
                       ),
                       Text(
@@ -632,7 +666,7 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
           style: GoogleFonts.inter(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: isGreen ? AppTheme.secondary : Colors.white,
+            color: isGreen ? AppTheme.secondary : AppTheme.textPrimary,
           ),
         ),
       ],
@@ -641,7 +675,7 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
 
   Widget _buildPinScreen() {
     return Scaffold(
-      backgroundColor: AppTheme.bgDark,
+      backgroundColor: AppTheme.bgLight,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         leading: GestureDetector(
@@ -654,15 +688,15 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
             decoration: BoxDecoration(
               color: AppTheme.bgCard,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white.withOpacity(0.08)),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
             ),
             child: const Icon(Icons.arrow_back_ios_new,
-                color: Colors.white, size: 18),
+                color: AppTheme.textPrimary, size: 18),
           ),
         ),
         title: Text('Confirm with PIN',
             style: GoogleFonts.inter(
-                fontSize: 18, fontWeight: FontWeight.w700, color: Colors.white)),
+                fontSize: 18, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
       ),
       body: Padding(
         padding: const EdgeInsets.all(28),
@@ -688,13 +722,13 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
               style: GoogleFonts.inter(
                 fontSize: 22,
                 fontWeight: FontWeight.w700,
-                color: Colors.white,
+                color: AppTheme.textPrimary,
               ),
             ).animate(delay: 100.ms).fadeIn(),
             Text(
               'Authorize the money transfer',
               style: GoogleFonts.inter(
-                  fontSize: 13, color: AppTheme.textMuted),
+                  fontSize: 13, color: AppTheme.textSecondary),
             ).animate(delay: 200.ms).fadeIn(),
             const SizedBox(height: 36),
             // PIN dots
@@ -711,7 +745,7 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
                     shape: BoxShape.circle,
                     color: index < _pin.length
                         ? AppTheme.primary
-                        : Colors.white.withOpacity(0.12),
+                        : const Color(0xFFE2E8F0),
                     boxShadow: index < _pin.length
                         ? [
                             BoxShadow(
@@ -771,7 +805,7 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
                       color: AppTheme.bgCard,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                          color: Colors.white.withOpacity(0.06)),
+                          color: const Color(0xFFE2E8F0)),
                     ),
                     child: const Icon(Icons.backspace_outlined,
                         color: AppTheme.textSecondary),
@@ -788,7 +822,7 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
                     color: AppTheme.bgCard,
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                        color: Colors.white.withOpacity(0.06)),
+                        color: const Color(0xFFE2E8F0)),
                   ),
                   child: Center(
                     child: Text(
@@ -796,7 +830,7 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
                       style: GoogleFonts.inter(
                         fontSize: 24,
                         fontWeight: FontWeight.w700,
-                        color: Colors.white,
+                        color: AppTheme.textPrimary,
                       ),
                     ),
                   ),

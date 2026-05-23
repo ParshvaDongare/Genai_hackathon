@@ -26,7 +26,7 @@ class NotificationsScreen extends StatelessWidget {
     {
       'icon': Icons.auto_awesome,
       'color': AppTheme.accent,
-      'title': 'AI Savings Tip 💡',
+      'title': 'AI Savings Tip',
       'body': 'Save ₹100 this week for your Emergency Fund goal!',
       'time': '5 hours ago',
       'isUnread': true,
@@ -68,7 +68,7 @@ class NotificationsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.bgDark,
+      backgroundColor: AppTheme.bgLight,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         leading: GestureDetector(
@@ -78,15 +78,15 @@ class NotificationsScreen extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppTheme.bgCard,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white.withOpacity(0.08)),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
             ),
             child: const Icon(Icons.arrow_back_ios_new,
-                color: Colors.white, size: 18),
+                color: AppTheme.textPrimary, size: 18),
           ),
         ),
         title: Text('Notifications',
             style: GoogleFonts.inter(
-                fontSize: 18, fontWeight: FontWeight.w700, color: Colors.white)),
+                fontSize: 18, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
         actions: [
           TextButton(
             onPressed: () {},
@@ -115,7 +115,7 @@ class NotificationsScreen extends StatelessWidget {
               border: Border.all(
                 color: isUnread
                     ? AppTheme.primary.withOpacity(0.2)
-                    : Colors.white.withOpacity(0.05),
+                    : const Color(0xFFE2E8F0),
               ),
             ),
             child: Row(
@@ -149,7 +149,7 @@ class NotificationsScreen extends StatelessWidget {
                                 fontWeight: isUnread
                                     ? FontWeight.w700
                                     : FontWeight.w600,
-                                color: Colors.white,
+                                color: AppTheme.textPrimary,
                               ),
                             ),
                           ),

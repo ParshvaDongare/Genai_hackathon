@@ -3,7 +3,9 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:provider/provider.dart';
+import '../providers/app_provider.dart';
 import '../providers/wallet_provider.dart';
+import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 
 class AiInsightsScreen extends StatefulWidget {
@@ -16,75 +18,85 @@ class AiInsightsScreen extends StatefulWidget {
 class _AiInsightsScreenState extends State<AiInsightsScreen> {
   bool _showGoalCreator = false;
 
-  final List<Map<String, dynamic>> _aiTips = [
-    {
-      'icon': '💡',
-      'title': 'Save ₹100 weekly',
-      'body':
-          'Set aside ₹100 every week in your Emergency Fund goal. In 1 year, you\'ll have ₹5,200!',
-      'color': AppTheme.primary,
-    },
-    {
-      'icon': '📊',
-      'title': 'Your spending this month',
-      'body':
-          'You sent ₹4,200 in remittances this month — ₹800 less than last month. Great job!',
-      'color': AppTheme.secondary,
-    },
-    {
-      'icon': '🎯',
-      'title': 'You\'re 35% to your goal!',
-      'body':
-          'Your Emergency Fund is ₹3,500 of ₹10,000. Keep going — just ₹6,500 more to go!',
-      'color': AppTheme.accent,
-    },
-    {
-      'icon': '🏦',
-      'title': 'Safe Investment Opportunity',
-      'body':
-          'Government-backed Sukanya Samriddi Yojana gives 8.2% returns with zero risk. Consider it for family!',
-      'color': AppTheme.info,
-    },
-  ];
-
-  final List<Map<String, dynamic>> _investments = [
-    {
-      'name': 'Emergency Fund',
-      'type': 'Liquid Fund',
-      'return': '7.2% p.a.',
-      'risk': 'Low',
-      'minAmount': '₹10',
-      'color': AppTheme.secondary,
-    },
-    {
-      'name': 'Pradhan Mantri Jan Dhan',
-      'type': 'Government Scheme',
-      'return': '4% p.a.',
-      'risk': 'Zero',
-      'minAmount': '₹1',
-      'color': AppTheme.accent,
-    },
-    {
-      'name': 'Fixed Deposit',
-      'type': 'Bank FD',
-      'return': '8.5% p.a.',
-      'risk': 'Low',
-      'minAmount': '₹100',
-      'color': AppTheme.info,
-    },
-    {
-      'name': 'Balanced Mutual Fund',
-      'type': 'Mutual Fund',
-      'return': '12-15% p.a.',
-      'risk': 'Medium',
-      'minAmount': '₹500',
-      'color': AppTheme.primary,
-    },
-  ];
+  IconData _getGoalIcon(String goalId) {
+    switch (goalId) {
+      case 'GOAL001':
+        return Icons.shield_rounded;
+      case 'GOAL002':
+        return Icons.school_rounded;
+      case 'GOAL003':
+        return Icons.home_rounded;
+      default:
+        return Icons.savings_rounded;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final appProvider = context.watch<AppProvider>();
     final walletProvider = context.watch<WalletProvider>();
+
+    final List<Map<String, dynamic>> aiTips = [
+      {
+        'icon': Icons.lightbulb_outline_rounded,
+        'title': appProvider.t('tip_save_100_title'),
+        'body': appProvider.t('tip_save_100_body'),
+        'color': AppTheme.primary,
+      },
+      {
+        'icon': Icons.bar_chart_rounded,
+        'title': appProvider.t('tip_spending_title'),
+        'body': appProvider.t('tip_spending_body'),
+        'color': AppTheme.secondary,
+      },
+      {
+        'icon': Icons.track_changes_rounded,
+        'title': appProvider.t('tip_goal_title'),
+        'body': appProvider.t('tip_goal_body'),
+        'color': AppTheme.accent,
+      },
+      {
+        'icon': Icons.account_balance_rounded,
+        'title': appProvider.t('tip_invest_title'),
+        'body': appProvider.t('tip_invest_body'),
+        'color': AppTheme.info,
+      },
+    ];
+
+    final List<Map<String, dynamic>> investments = [
+      {
+        'name': appProvider.t('emergency_fund'),
+        'type': appProvider.t('liquid_fund'),
+        'return': '7.2% p.a.',
+        'risk': appProvider.t('risk_low'),
+        'minAmount': '₹10',
+        'color': AppTheme.secondary,
+      },
+      {
+        'name': appProvider.t('pm_jan_dhan'),
+        'type': appProvider.t('govt_scheme'),
+        'return': '4% p.a.',
+        'risk': appProvider.t('zero_risk_label'),
+        'minAmount': '₹1',
+        'color': AppTheme.accent,
+      },
+      {
+        'name': appProvider.t('fd'),
+        'type': appProvider.t('bank_fd'),
+        'return': '8.5% p.a.',
+        'risk': appProvider.t('risk_low'),
+        'minAmount': '₹100',
+        'color': AppTheme.info,
+      },
+      {
+        'name': appProvider.t('balanced_mutual_fund'),
+        'type': appProvider.t('mutual_fund'),
+        'return': '12-15% p.a.',
+        'risk': appProvider.t('risk_medium'),
+        'minAmount': '₹500',
+        'color': AppTheme.primary,
+      },
+    ];
 
     return SafeArea(
       child: CustomScrollView(
@@ -99,16 +111,16 @@ class _AiInsightsScreenState extends State<AiInsightsScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'AI Financial Insights',
+                        appProvider.t('ai_insights'),
                         style: GoogleFonts.inter(
                           fontSize: 22,
                           fontWeight: FontWeight.w800,
-                          color: Colors.white,
+                          color: AppTheme.textPrimary,
                           letterSpacing: -0.5,
                         ),
                       ),
                       Text(
-                        'Personalized for you',
+                        appProvider.t('personalized_for_you'),
                         style: GoogleFonts.inter(
                           fontSize: 13,
                           color: AppTheme.textMuted,
@@ -144,11 +156,11 @@ class _AiInsightsScreenState extends State<AiInsightsScreen> {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
                   child: Text(
-                    'This Week\'s Tips 💡',
+                    appProvider.t('this_weeks_tips'),
                     style: GoogleFonts.inter(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
-                      color: Colors.white,
+                      color: AppTheme.textPrimary,
                     ),
                   ),
                 ),
@@ -157,10 +169,10 @@ class _AiInsightsScreenState extends State<AiInsightsScreen> {
                   child: ListView.separated(
                     scrollDirection: Axis.horizontal,
                     padding: const EdgeInsets.symmetric(horizontal: 20),
-                    itemCount: _aiTips.length,
+                    itemCount: aiTips.length,
                     separatorBuilder: (_, __) => const SizedBox(width: 12),
                     itemBuilder: (ctx, i) {
-                      final tip = _aiTips[i];
+                      final tip = aiTips[i];
                       return Container(
                         width: 240,
                         padding: const EdgeInsets.all(16),
@@ -181,15 +193,18 @@ class _AiInsightsScreenState extends State<AiInsightsScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(tip['icon'] as String,
-                                style: const TextStyle(fontSize: 28)),
+                            Icon(
+                              tip['icon'] as IconData,
+                              color: tip['color'] as Color,
+                              size: 28,
+                            ),
                             const SizedBox(height: 8),
                             Text(
                               tip['title'] as String,
                               style: GoogleFonts.inter(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w700,
-                                color: Colors.white,
+                                color: AppTheme.textPrimary,
                               ),
                             ),
                             const SizedBox(height: 4),
@@ -220,11 +235,11 @@ class _AiInsightsScreenState extends State<AiInsightsScreen> {
               child: Row(
                 children: [
                   Text(
-                    'Savings Goals 🎯',
+                    appProvider.t('savings_goals'),
                     style: GoogleFonts.inter(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
-                      color: Colors.white,
+                      color: AppTheme.textPrimary,
                     ),
                   ),
                   const Spacer(),
@@ -271,29 +286,32 @@ class _AiInsightsScreenState extends State<AiInsightsScreen> {
                       color: AppTheme.bgCard,
                       borderRadius: BorderRadius.circular(18),
                       border: Border.all(
-                          color: Colors.white.withOpacity(0.06)),
+                          color: const Color(0xFFE2E8F0)),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           children: [
-                            Text(goal.emoji,
-                                style: const TextStyle(fontSize: 24)),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment:
-                                    CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    goal.name,
-                                    style: GoogleFonts.inter(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w700,
-                                      color: Colors.white,
+                            Icon(
+                              _getGoalIcon(goal.id),
+                              color: AppTheme.primary,
+                              size: 24,
+                            ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      goal.name,
+                                      style: GoogleFonts.inter(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w700,
+                                        color: AppTheme.textPrimary,
+                                      ),
                                     ),
-                                  ),
                                   Text(
                                     '₹${goal.savedAmount.toInt()} of ₹${goal.targetAmount.toInt()}',
                                     style: GoogleFonts.inter(
@@ -327,8 +345,6 @@ class _AiInsightsScreenState extends State<AiInsightsScreen> {
                           percent: goal.progress.clamp(0, 1).toDouble(),
                           lineHeight: 8,
                           barRadius: const Radius.circular(8),
-                          backgroundColor:
-                              Colors.white.withOpacity(0.08),
                           linearGradient: LinearGradient(
                             colors: [
                               AppTheme.primary,
@@ -392,11 +408,11 @@ class _AiInsightsScreenState extends State<AiInsightsScreen> {
               child: Row(
                 children: [
                   Text(
-                    'Micro-Investments 📈',
+                    appProvider.t('micro_investments'),
                     style: GoogleFonts.inter(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
-                      color: Colors.white,
+                      color: AppTheme.textPrimary,
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -423,7 +439,7 @@ class _AiInsightsScreenState extends State<AiInsightsScreen> {
           SliverList(
             delegate: SliverChildBuilderDelegate(
               (ctx, i) {
-                final inv = _investments[i];
+                final inv = investments[i];
                 final riskColor = inv['risk'] == 'Zero' || inv['risk'] == 'Low'
                     ? AppTheme.secondary
                     : inv['risk'] == 'Medium'
@@ -439,7 +455,7 @@ class _AiInsightsScreenState extends State<AiInsightsScreen> {
                       color: AppTheme.bgCard,
                       borderRadius: BorderRadius.circular(18),
                       border: Border.all(
-                          color: Colors.white.withOpacity(0.06)),
+                          color: const Color(0xFFE2E8F0)),
                     ),
                     child: Row(
                       children: [
@@ -467,12 +483,12 @@ class _AiInsightsScreenState extends State<AiInsightsScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
+                               Text(
                                 inv['name'] as String,
                                 style: GoogleFonts.inter(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w700,
-                                  color: Colors.white,
+                                  color: AppTheme.textPrimary,
                                 ),
                               ),
                               Text(
@@ -567,7 +583,7 @@ class _AiInsightsScreenState extends State<AiInsightsScreen> {
                       delay: Duration(milliseconds: 400 + i * 80)).fadeIn().slideX(begin: 0.1),
                 );
               },
-              childCount: _investments.length,
+              childCount: investments.length,
             ),
           ),
           const SliverToBoxAdapter(child: SizedBox(height: 100)),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
+import '../services/api_service.dart';
 
 enum TransactionType { sent, received, addedMoney, withdrawn }
 
@@ -52,9 +53,16 @@ class WalletProvider extends ChangeNotifier {
   final List<Transaction> _transactions = [];
   final List<SavingsGoal> _goals = [];
 
+  String? _phone;
+  String? _token;
+  bool _isLoading = false;
+  String? _errorMessage;
+
   double get balance => _balance;
   List<Transaction> get transactions => List.unmodifiable(_transactions);
   List<SavingsGoal> get goals => List.unmodifiable(_goals);
+  bool get isLoading => _isLoading;
+  String? get errorMessage => _errorMessage;
 
   WalletProvider() {
     _initSampleData();
@@ -122,6 +130,7 @@ class WalletProvider extends ChangeNotifier {
     ]);
 
     // Sample goals
+    _goals.clear();
     _goals.addAll([
       SavingsGoal(
         id: 'GOAL001',
@@ -129,7 +138,7 @@ class WalletProvider extends ChangeNotifier {
         targetAmount: 10000,
         savedAmount: 3500,
         deadline: now.add(const Duration(days: 90)),
-        emoji: '🛡️',
+        emoji: '',
       ),
       SavingsGoal(
         id: 'GOAL002',
@@ -137,7 +146,7 @@ class WalletProvider extends ChangeNotifier {
         targetAmount: 50000,
         savedAmount: 12000,
         deadline: now.add(const Duration(days: 365)),
-        emoji: '📚',
+        emoji: '',
       ),
       SavingsGoal(
         id: 'GOAL003',
@@ -145,7 +154,7 @@ class WalletProvider extends ChangeNotifier {
         targetAmount: 200000,
         savedAmount: 35000,
         deadline: now.add(const Duration(days: 730)),
-        emoji: '🏠',
+        emoji: '',
       ),
     ]);
   }
@@ -160,56 +169,192 @@ class WalletProvider extends ChangeNotifier {
     return 'TXN${DateTime.now().millisecondsSinceEpoch}';
   }
 
+  void updateAuth({required String phone, required String token}) {
+    if (_phone == phone && _token == token) return;
+    _phone = phone;
+    _token = token;
+
+    if (phone.isNotEmpty && token.isNotEmpty) {
+      loadWalletData();
+    } else {
+      // Clear or reset to sample data if logged out
+      _balance = 12500.00;
+      _transactions.clear();
+      _initSampleData();
+      notifyListeners();
+    }
+  }
+
+  Future<void> loadWalletData() async {
+    if (_phone == null || _token == null || _phone!.isEmpty || _token!.isEmpty) return;
+
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final balanceRes = await ApiService.getBalance(_phone!, _token!);
+      final txnsRes = await ApiService.getTransactions(_phone!, _token!);
+
+      _balance = (balanceRes['balance'] as num).toDouble();
+      
+      _transactions.clear();
+      final List<dynamic> txs = txnsRes['transactions'] ?? [];
+      for (var tx in txs) {
+        _transactions.add(Transaction(
+          id: tx['id'] ?? tx['_id'] ?? '',
+          type: _parseTxnType(tx['type']),
+          amount: (tx['amount'] as num).toDouble(),
+          name: tx['receiverName'] ?? tx['senderName'] ?? 'Unknown',
+          phoneOrUpi: tx['receiverPhone'] ?? tx['senderPhone'] ?? '',
+          timestamp: DateTime.parse(tx['timestamp'] ?? tx['createdAt'] ?? DateTime.now().toIso8601String()),
+          status: tx['status'] ?? 'success',
+          blockchainHash: tx['blockchainHash'] ?? '',
+          note: tx['note'] ?? '',
+        ));
+      }
+    } catch (e) {
+      _errorMessage = e.toString();
+      print('loadWalletData error: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  TransactionType _parseTxnType(String? type) {
+    switch (type) {
+      case 'sent':
+        return TransactionType.sent;
+      case 'received':
+        return TransactionType.received;
+      case 'addedMoney':
+      case 'add':
+        return TransactionType.addedMoney;
+      case 'withdrawn':
+      case 'withdraw':
+        return TransactionType.withdrawn;
+      default:
+        return TransactionType.sent;
+    }
+  }
+
   Future<Transaction?> sendMoney({
     required String receiverName,
     required String receiverPhone,
     required double amount,
+    required String pin,
   }) async {
-    if (amount > _balance) return null;
-    await Future.delayed(const Duration(seconds: 2));
-
-    final txn = Transaction(
-      id: _generateTxnId(),
-      type: TransactionType.sent,
-      amount: amount,
-      name: receiverName.isNotEmpty ? receiverName : 'Family Member',
-      phoneOrUpi: receiverPhone,
-      timestamp: DateTime.now(),
-      status: 'success',
-      blockchainHash: _generateHash(),
-    );
-
-    _balance -= amount;
-    _transactions.insert(0, txn);
-    notifyListeners();
-    return txn;
-  }
-
-  Future<void> addMoney(double amount) async {
-    await Future.delayed(const Duration(seconds: 1));
-    _balance += amount;
-    _transactions.insert(
-      0,
-      Transaction(
+    if (amount > _balance) {
+      throw const ApiException(message: 'Insufficient balance', statusCode: 402);
+    }
+    
+    if (_phone == null || _phone!.isEmpty || _token == null || _token!.isEmpty) {
+      // Fallback
+      await Future.delayed(const Duration(seconds: 1));
+      final txn = Transaction(
         id: _generateTxnId(),
-        type: TransactionType.addedMoney,
+        type: TransactionType.sent,
         amount: amount,
-        name: 'Added via UPI',
-        phoneOrUpi: 'wallet@upi',
+        name: receiverName.isNotEmpty ? receiverName : 'Family Member',
+        phoneOrUpi: receiverPhone,
         timestamp: DateTime.now(),
         status: 'success',
         blockchainHash: _generateHash(),
-      ),
+      );
+      _balance -= amount;
+      _transactions.insert(0, txn);
+      notifyListeners();
+      return txn;
+    }
+
+    final res = await ApiService.sendMoney(
+      phone: _phone!,
+      token: _token!,
+      receiverPhone: receiverPhone,
+      receiverName: receiverName,
+      amount: amount,
+      pin: pin,
     );
-    notifyListeners();
+
+    await loadWalletData();
+
+    if (res['transaction'] != null) {
+      final tx = res['transaction'];
+      return Transaction(
+        id: tx['id'] ?? '',
+        type: TransactionType.sent,
+        amount: (tx['amount'] as num).toDouble(),
+        name: tx['receiverName'] ?? receiverName,
+        phoneOrUpi: tx['receiverPhone'] ?? receiverPhone,
+        timestamp: DateTime.parse(tx['timestamp'] ?? DateTime.now().toIso8601String()),
+        status: tx['status'] ?? 'success',
+        blockchainHash: tx['blockchainHash'] ?? '',
+        note: tx['note'] ?? '',
+      );
+    }
+    return null;
   }
 
-  void addToGoal(String goalId, double amount) {
+  Future<void> addMoney(double amount) async {
+    if (_phone == null || _phone!.isEmpty || _token == null || _token!.isEmpty) {
+      // Fallback
+      await Future.delayed(const Duration(seconds: 1));
+      _balance += amount;
+      _transactions.insert(
+        0,
+        Transaction(
+          id: _generateTxnId(),
+          type: TransactionType.addedMoney,
+          amount: amount,
+          name: 'Added via UPI',
+          phoneOrUpi: 'wallet@upi',
+          timestamp: DateTime.now(),
+          status: 'success',
+          blockchainHash: _generateHash(),
+        ),
+      );
+      notifyListeners();
+      return;
+    }
+
+    await ApiService.addMoney(
+      phone: _phone!,
+      token: _token!,
+      amount: amount,
+      method: 'UPI',
+    );
+
+    await loadWalletData();
+  }
+
+  Future<void> addToGoal(String goalId, double amount) async {
     final idx = _goals.indexWhere((g) => g.id == goalId);
-    if (idx != -1 && _balance >= amount) {
+    if (idx == -1) return;
+    if (_balance < amount) {
+      throw const ApiException(message: 'Insufficient balance to add to goal', statusCode: 402);
+    }
+
+    if (_phone == null || _phone!.isEmpty || _token == null || _token!.isEmpty) {
+      // Fallback
       _goals[idx].savedAmount += amount;
       _balance -= amount;
       notifyListeners();
+      return;
     }
+
+    final goal = _goals[idx];
+    await ApiService.sendMoney(
+      phone: _phone!,
+      token: _token!,
+      receiverPhone: 'savings_goal_$goalId',
+      receiverName: goal.name,
+      amount: amount,
+      pin: '', // bypassed on backend
+      note: 'Saved to ${goal.name}',
+    );
+
+    _goals[idx].savedAmount += amount;
+    await loadWalletData();
   }
 }

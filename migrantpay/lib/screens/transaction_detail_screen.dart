@@ -24,7 +24,7 @@ class TransactionDetailScreen extends StatelessWidget {
     final isFailed = txn.status == 'failed';
 
     return Scaffold(
-      backgroundColor: AppTheme.bgDark,
+      backgroundColor: AppTheme.bgLight,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         leading: GestureDetector(
@@ -34,18 +34,18 @@ class TransactionDetailScreen extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppTheme.bgCard,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white.withOpacity(0.08)),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
             ),
             child: const Icon(Icons.arrow_back_ios_new,
-                color: Colors.white, size: 18),
+                color: AppTheme.textPrimary, size: 18),
           ),
         ),
         title: Text('Transaction Details',
             style: GoogleFonts.inter(
-                fontSize: 18, fontWeight: FontWeight.w700, color: Colors.white)),
+                fontSize: 18, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
         actions: [
           IconButton(
-            icon: const Icon(Icons.share_outlined, color: Colors.white),
+            icon: const Icon(Icons.share_outlined, color: AppTheme.textPrimary),
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -119,11 +119,11 @@ class TransactionDetailScreen extends StatelessWidget {
               const SizedBox(height: 16),
               if (isSuccess)
                 Text(
-                  'Money Sent! 🎉',
+                  'Money Sent!',
                   style: GoogleFonts.inter(
                     fontSize: 24,
                     fontWeight: FontWeight.w800,
-                    color: Colors.white,
+                    color: AppTheme.textPrimary,
                   ),
                 ).animate(delay: 200.ms).fadeIn(),
               const SizedBox(height: 8),
@@ -148,7 +148,7 @@ class TransactionDetailScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: AppTheme.bgCard,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.white.withOpacity(0.06)),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
                 ),
                 child: Column(
                   children: [
@@ -177,7 +177,7 @@ class TransactionDetailScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: AppTheme.bgCard,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.white.withOpacity(0.06)),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -222,7 +222,7 @@ class TransactionDetailScreen extends StatelessWidget {
                       style: GoogleFonts.inter(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: Colors.white,
+                        color: AppTheme.textPrimary,
                         letterSpacing: 0.5,
                       ),
                     ),
@@ -373,7 +373,7 @@ class TransactionDetailScreen extends StatelessWidget {
                   style: GoogleFonts.inter(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: valueColor ?? Colors.white,
+                    color: valueColor ?? AppTheme.textPrimary,
                   ),
                   textAlign: TextAlign.end,
                   overflow: TextOverflow.ellipsis,
@@ -383,7 +383,7 @@ class TransactionDetailScreen extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Divider(
-              color: Colors.white.withOpacity(0.05), height: 1),
+              color: const Color(0xFFE2E8F0), height: 1),
         ],
       ),
     );

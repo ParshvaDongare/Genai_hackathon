@@ -7,6 +7,7 @@ import '../providers/app_provider.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 import 'otp_screen.dart';
+import 'pin_login_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -29,10 +30,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   void _sendOtp() async {
-    if (_phoneController.text.length < 10) {
+    final appProvider = context.read<AppProvider>();
+    final phone = _phoneController.text.trim();
+    final name = _nameController.text.trim();
+
+    if (_nameController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Enter a valid 10-digit mobile number',
+          content: Text(appProvider.t('name_required'),
+              style: GoogleFonts.inter()),
+          backgroundColor: AppTheme.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      );
+      return;
+    }
+    if (phone.length < 10) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(appProvider.t('valid_phone'),
               style: GoogleFonts.inter()),
           backgroundColor: AppTheme.error,
           behavior: SnackBarBehavior.floating,
@@ -44,7 +61,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (!_agreed) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Please accept Terms & Conditions', style: GoogleFonts.inter()),
+          content: Text(appProvider.t('accept_terms'), style: GoogleFonts.inter()),
           backgroundColor: AppTheme.error,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -54,9 +71,42 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
     setState(() => _isLoading = true);
     try {
+      try {
+        final accountCheck = await ApiService.checkAccount(phone, name);
+        if (!mounted) return;
+
+        if (accountCheck['exists'] == true) {
+          setState(() => _isLoading = false);
+          Navigator.of(context).push(
+            PageRouteBuilder(
+              pageBuilder: (_, __, ___) => PinLoginScreen(
+                phone: phone,
+                name: name,
+              ),
+              transitionsBuilder: (_, anim, __, child) {
+                return SlideTransition(
+                  position: Tween<Offset>(
+                    begin: const Offset(1, 0),
+                    end: Offset.zero,
+                  ).animate(
+                    CurvedAnimation(parent: anim, curve: Curves.easeInOut),
+                  ),
+                  child: child,
+                );
+              },
+            ),
+          );
+          return;
+        }
+      } on ApiException catch (e) {
+        // Backward compatibility: if the backend has not been restarted yet,
+        // continue with the standard OTP flow instead of failing on 404.
+        if (e.statusCode != 404) rethrow;
+      }
+
       final result = await ApiService.sendOtp(
-        _phoneController.text,
-        name: _nameController.text,
+        phone,
+        name: name,
       );
       if (!mounted) return;
       setState(() => _isLoading = false);
@@ -65,7 +115,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       if (demoOtp != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('🔑 Demo OTP: $demoOtp (auto-filled)',
+            content: Text('Demo OTP: $demoOtp (auto-filled)',
                 style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
             backgroundColor: AppTheme.accent,
             behavior: SnackBarBehavior.floating,
@@ -77,8 +127,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       Navigator.of(context).push(
         PageRouteBuilder(
           pageBuilder: (_, __, ___) => OtpScreen(
-            phone: _phoneController.text,
-            name: _nameController.text,
+            phone: phone,
+            name: name,
             demoOtp: demoOtp,
           ),
           transitionsBuilder: (_, anim, __, child) {
@@ -111,7 +161,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final appProvider = context.watch<AppProvider>();
 
     return Scaffold(
-      backgroundColor: AppTheme.bgDark,
+      backgroundColor: AppTheme.bgLight,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
@@ -130,10 +180,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           color: AppTheme.bgCard,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                              color: Colors.white.withOpacity(0.08)),
+                              color: const Color(0xFFE2E8F0)),
                         ),
                         child: const Icon(Icons.arrow_back_ios_new,
-                            color: Colors.white, size: 18),
+                            color: AppTheme.textPrimary, size: 18),
                       ),
                     ),
                     const Spacer(),
@@ -166,7 +216,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   style: GoogleFonts.inter(
                     fontSize: 32,
                     fontWeight: FontWeight.w800,
-                    color: Colors.white,
+                    color: AppTheme.textPrimary,
                     letterSpacing: -0.5,
                   ),
                 ).animate(delay: 100.ms).fadeIn().slideY(begin: 0.2),
@@ -180,45 +230,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ).animate(delay: 200.ms).fadeIn().slideY(begin: 0.2),
                 const SizedBox(height: 40),
                 // Name field
-                Row(
-                  children: [
-                    Text(
-                      'Full Name',
-                      style: GoogleFonts.inter(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.textSecondary,
-                        letterSpacing: 0.3,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: AppTheme.accent.withOpacity(0.12),
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: AppTheme.accent.withOpacity(0.3)),
-                      ),
-                      child: Text(
-                        'Optional',
-                        style: GoogleFonts.inter(
-                          fontSize: 10,
-                          color: AppTheme.accent,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
+                Text(
+                  appProvider.t('full_name'),
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.textSecondary,
+                    letterSpacing: 0.3,
+                  ),
                 ).animate(delay: 300.ms).fadeIn(),
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: _nameController,
                   style: GoogleFonts.inter(
                       fontSize: 16,
-                      color: Colors.white,
+                      color: AppTheme.textPrimary,
                       fontWeight: FontWeight.w500),
                   decoration: InputDecoration(
-                    hintText: 'e.g. Ramesh Kumar (optional)',
+                    hintText: appProvider.t('enter_name'),
                     prefixIcon: const Icon(Icons.person_outline,
                         color: AppTheme.textMuted),
                   ),
@@ -244,7 +273,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ],
                   style: GoogleFonts.inter(
                       fontSize: 18,
-                      color: Colors.white,
+                      color: AppTheme.textPrimary,
                       fontWeight: FontWeight.w600,
                       letterSpacing: 2),
                   decoration: InputDecoration(
@@ -337,8 +366,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         gradient: _agreed
                             ? AppTheme.primaryGradient
                             : const LinearGradient(colors: [
-                                Color(0xFF3A3A5C),
-                                Color(0xFF3A3A5C)
+                                Color(0xFFCBD5E1),
+                                Color(0xFFCBD5E1)
                               ]),
                         borderRadius: BorderRadius.circular(16),
                         boxShadow: _agreed
@@ -410,7 +439,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             style: GoogleFonts.inter(
                 fontSize: 15,
                 fontWeight: FontWeight.w700,
-                color: Colors.white)),
+                color: AppTheme.textPrimary)),
         Text(label,
             style: GoogleFonts.inter(
                 fontSize: 11, color: AppTheme.textMuted)),

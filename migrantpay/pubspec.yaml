@@ -25,6 +25,8 @@ dependencies:
   percent_indicator: ^4.2.3
   image_picker: ^1.1.2
   gap: ^3.0.1
+  http: ^1.5.0
+  mobile_scanner: ^7.2.0
 
 dev_dependencies:
   flutter_test:

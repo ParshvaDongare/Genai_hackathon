@@ -26,6 +26,30 @@ class ApiService {
     return _parse(res);
   }
 
+  /// Check whether this phone/name already belongs to a verified account
+  static Future<Map<String, dynamic>> checkAccount(String phone, String name) async {
+    final res = await http.post(
+      Uri.parse('$baseUrl/auth/check-account'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'phone': phone, 'name': name}),
+    );
+    return _parse(res);
+  }
+
+  /// Login returning user with phone + name + PIN
+  static Future<Map<String, dynamic>> loginWithPin({
+    required String phone,
+    required String name,
+    required String pin,
+  }) async {
+    final res = await http.post(
+      Uri.parse('$baseUrl/auth/login'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'phone': phone, 'name': name, 'pin': pin}),
+    );
+    return _parse(res);
+  }
+
   /// Verify OTP — returns token + user info on success
   static Future<Map<String, dynamic>> verifyOtp(String phone, String otp) async {
     final res = await http.post(

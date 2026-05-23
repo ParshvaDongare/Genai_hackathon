@@ -6,6 +6,7 @@ import '../providers/app_provider.dart';
 import '../theme/app_theme.dart';
 import 'kyc_screen.dart';
 import 'language_select_screen.dart';
+import 'register_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -28,7 +29,7 @@ class ProfileScreen extends StatelessWidget {
                     style: GoogleFonts.inter(
                       fontSize: 22,
                       fontWeight: FontWeight.w800,
-                      color: Colors.white,
+                      color: AppTheme.textPrimary,
                       letterSpacing: -0.5,
                     ),
                   ),
@@ -251,7 +252,7 @@ class ProfileScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(20)),
                       title: Text('Logout',
                           style: GoogleFonts.inter(
-                              color: Colors.white,
+                              color: AppTheme.textPrimary,
                               fontWeight: FontWeight.w700)),
                       content: Text(
                           'Are you sure you want to logout?',
@@ -270,8 +271,7 @@ class ProfileScreen extends StatelessWidget {
                             context.read<AppProvider>().logout();
                             Navigator.of(context).pushAndRemoveUntil(
                               MaterialPageRoute(
-                                  builder: (_) =>
-                                      const LanguageSelectScreen()),
+                                  builder: (_) => const RegisterScreen()),
                               (route) => false,
                             );
                           },
@@ -372,7 +372,7 @@ class ProfileScreen extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppTheme.bgCard,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withOpacity(0.05)),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
         ),
         child: Row(
           children: [
@@ -395,7 +395,7 @@ class ProfileScreen extends StatelessWidget {
                     style: GoogleFonts.inter(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: Colors.white,
+                      color: AppTheme.textPrimary,
                     ),
                   ),
                   Text(

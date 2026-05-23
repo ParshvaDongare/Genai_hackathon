@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import '../providers/app_provider.dart';
 import '../theme/app_theme.dart';
 
 class BottomNavBar extends StatelessWidget {
@@ -14,11 +16,12 @@ class BottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final appProvider = context.watch<AppProvider>();
     final items = [
-      {'icon': Icons.home_outlined, 'activeIcon': Icons.home_rounded, 'label': 'Home'},
-      {'icon': Icons.auto_awesome_outlined, 'activeIcon': Icons.auto_awesome, 'label': 'AI Insights'},
-      {'icon': Icons.receipt_long_outlined, 'activeIcon': Icons.receipt_long, 'label': 'History'},
-      {'icon': Icons.person_outline_rounded, 'activeIcon': Icons.person_rounded, 'label': 'Profile'},
+      {'icon': Icons.home_outlined, 'activeIcon': Icons.home_rounded, 'label': appProvider.t('nav_home')},
+      {'icon': Icons.auto_awesome_outlined, 'activeIcon': Icons.auto_awesome, 'label': appProvider.t('nav_ai_insights')},
+      {'icon': Icons.receipt_long_outlined, 'activeIcon': Icons.receipt_long, 'label': appProvider.t('nav_history')},
+      {'icon': Icons.person_outline_rounded, 'activeIcon': Icons.person_rounded, 'label': appProvider.t('nav_profile')},
     ];
 
     return Container(

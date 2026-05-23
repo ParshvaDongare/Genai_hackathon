@@ -8,3 +8,6 @@ npm-debug.log*
 # OS
 .DS_Store
 Thumbs.db
+
+# Local JSON Store
+store-data.json

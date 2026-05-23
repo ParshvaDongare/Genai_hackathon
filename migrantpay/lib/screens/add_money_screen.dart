@@ -87,7 +87,7 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.bgDark,
+      backgroundColor: AppTheme.bgLight,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         leading: GestureDetector(
@@ -97,15 +97,15 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
             decoration: BoxDecoration(
               color: AppTheme.bgCard,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white.withOpacity(0.08)),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
             ),
             child: const Icon(Icons.arrow_back_ios_new,
-                color: Colors.white, size: 18),
+                color: AppTheme.textPrimary, size: 18),
           ),
         ),
         title: Text('Add Money',
             style: GoogleFonts.inter(
-                fontSize: 18, fontWeight: FontWeight.w700, color: Colors.white)),
+                fontSize: 18, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -150,7 +150,7 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
                             style: GoogleFonts.inter(
                               fontSize: 52,
                               fontWeight: FontWeight.w900,
-                              color: Colors.white,
+                              color: AppTheme.textPrimary,
                               letterSpacing: -2,
                             ),
                             decoration: InputDecoration(
@@ -201,7 +201,7 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
                         border: Border.all(
                           color: isSelected
                               ? Colors.transparent
-                              : Colors.white.withOpacity(0.08),
+                              : const Color(0xFFE2E8F0),
                         ),
                       ),
                       child: Text(
@@ -225,7 +225,7 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
                 style: GoogleFonts.inter(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
-                  color: Colors.white,
+                  color: AppTheme.textPrimary,
                 ),
               ).animate(delay: 200.ms).fadeIn(),
               const SizedBox(height: 14),
@@ -249,7 +249,7 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
                         border: Border.all(
                           color: isSelected
                               ? AppTheme.primary.withOpacity(0.4)
-                              : Colors.white.withOpacity(0.06),
+                              : const Color(0xFFE2E8F0),
                           width: isSelected ? 1.5 : 1,
                         ),
                       ),
@@ -282,7 +282,7 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
                                   style: GoogleFonts.inter(
                                     fontSize: 15,
                                     fontWeight: FontWeight.w600,
-                                    color: Colors.white,
+                                    color: AppTheme.textPrimary,
                                   ),
                                 ),
                                 Text(

@@ -15,6 +15,7 @@ import 'transaction_history_screen.dart';
 import 'ai_insights_screen.dart';
 import 'notifications_screen.dart';
 import 'profile_screen.dart';
+import 'qr_scanner_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -40,7 +41,7 @@ class _HomeScreenState extends State<HomeScreen> {
     ];
 
     return Scaffold(
-      backgroundColor: AppTheme.bgDark,
+      backgroundColor: AppTheme.bgLight,
       body: IndexedStack(
         index: _selectedIndex,
         children: tabs,
@@ -71,7 +72,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Good Morning 👋',
+                        appProvider.t('good_morning'),
                         style: GoogleFonts.inter(
                           fontSize: 13,
                           color: AppTheme.textMuted,
@@ -84,12 +85,35 @@ class _HomeScreenState extends State<HomeScreen> {
                         style: GoogleFonts.inter(
                           fontSize: 20,
                           fontWeight: FontWeight.w800,
-                          color: Colors.white,
+                          color: AppTheme.textPrimary,
                         ),
                       ),
                     ],
                   ),
                   const Spacer(),
+                  // Scan QR icon
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const QrScannerScreen(),
+                        ),
+                      );
+                    },
+                    child: Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: AppTheme.bgCard,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                            color: const Color(0xFFE2E8F0)),
+                      ),
+                      child: const Icon(Icons.qr_code_scanner_rounded,
+                          color: AppTheme.primary, size: 22),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
                   // Notification icon
                   GestureDetector(
                     onTap: () {
@@ -108,10 +132,10 @@ class _HomeScreenState extends State<HomeScreen> {
                             color: AppTheme.bgCard,
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                                color: Colors.white.withOpacity(0.08)),
+                                color: const Color(0xFFE2E8F0)),
                           ),
                           child: const Icon(Icons.notifications_outlined,
-                              color: Colors.white, size: 22),
+                              color: AppTheme.textPrimary, size: 22),
                         ),
                         Positioned(
                           top: 8,
@@ -181,7 +205,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 style: GoogleFonts.inter(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
-                  color: Colors.white,
+                  color: AppTheme.textPrimary,
                 ),
               ),
             ),
@@ -211,23 +235,16 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   QuickActionButton(
-                    icon: Icons.download_rounded,
-                    label: appProvider.t('withdraw'),
+                    icon: Icons.qr_code_scanner_rounded,
+                    label: 'Scan QR',
                     gradient: const LinearGradient(
                       colors: [Color(0xFFF59E0B), Color(0xFFD97706)],
                     ),
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Withdrawal to UPI/bank coming soon!',
-                              style: GoogleFonts.inter()),
-                          backgroundColor: AppTheme.accent,
-                          behavior: SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
-                        ),
-                      );
-                    },
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const QrScannerScreen(),
+                      ),
+                    ),
                   ),
                   QuickActionButton(
                     icon: Icons.history_rounded,
@@ -270,7 +287,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            '₹0 Transaction Fee — Always!',
+                            appProvider.t('zero_fee_banner_title'),
                             style: GoogleFonts.inter(
                               fontSize: 14,
                               fontWeight: FontWeight.w700,
@@ -278,7 +295,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                           Text(
-                            'Send money home without any platform charges',
+                            appProvider.t('zero_fee_banner_desc'),
                             style: GoogleFonts.inter(
                               fontSize: 11,
                               color: AppTheme.secondary.withOpacity(0.8),
@@ -304,7 +321,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     style: GoogleFonts.inter(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
-                      color: Colors.white,
+                      color: AppTheme.textPrimary,
                     ),
                   ),
                   GestureDetector(
@@ -375,7 +392,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              '💡 AI Tip of the Day',
+                              appProvider.t('ai_tip_day'),
                               style: GoogleFonts.inter(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w700,
@@ -384,7 +401,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'Save ₹100 weekly for emergency fund — reach ₹5,200 in a year!',
+                              appProvider.t('ai_tip_teaser'),
                               style: GoogleFonts.inter(
                                 fontSize: 12,
                                 color: AppTheme.textSecondary,
